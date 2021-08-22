@@ -18,6 +18,13 @@ The only dependencies for this project should be docker and docker-compose.
 
 ### Quick Start
 
+When running the project for the first time, you will need to run the initial data migrations:
+
+```
+chmod +x scripts/build.sh
+./scripts/build.sh
+```
+
 Starting the project with hot-reloading enabled
 (the first time it will take a while):
 
