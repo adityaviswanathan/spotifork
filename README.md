@@ -1,46 +1,159 @@
-# Getting Started with Create React App
+# spotifork
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Features
 
-## Available Scripts
+- **FastAPI** with Python 3.8
+- **React 16** with Typescript, Redux, and react-router
+- Postgres
+- SqlAlchemy with Alembic for migrations
+- Pytest for backend tests
+- Jest for frontend tests
+- Perttier/Eslint (with Airbnb style guide)
+- Docker compose for easier development
+- Nginx as a reverse proxy to allow backend and frontend on the same port
 
-In the project directory, you can run:
+## Development
 
-### `yarn start`
+The only dependencies for this project should be docker and docker-compose.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Quick Start
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Starting the project with hot-reloading enabled
+(the first time it will take a while):
 
-### `yarn test`
+```bash
+docker-compose up -d
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+To run the alembic migrations (for the users table):
 
-### `yarn build`
+```bash
+docker-compose run --rm backend alembic upgrade head
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+And navigate to http://localhost:8000
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+_Note: If you see an Nginx error at first with a `502: Bad Gateway` page, you may have to wait for webpack to build the development server (the nginx container builds much more quickly)._
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Auto-generated docs will be at
+http://localhost:8000/api/docs
 
-### `yarn eject`
+### Rebuilding containers:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```
+docker-compose build
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Restarting containers:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+docker-compose restart
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Bringing containers down:
 
-## Learn More
+```
+docker-compose down
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Frontend Development
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Alternatively to running inside docker, it can sometimes be easier
+to use npm directly for quicker reloading. To run using npm:
+
+```
+cd frontend
+npm install
+npm start
+```
+
+This should redirect you to http://localhost:3000
+
+### Frontend Tests
+
+```
+cd frontend
+npm install
+npm test
+```
+
+## Migrations
+
+Migrations are run using alembic. To run all migrations:
+
+```
+docker-compose run --rm backend alembic upgrade head
+```
+
+To create a new migration:
+
+```
+alembic revision -m "create users table"
+```
+
+And fill in `upgrade` and `downgrade` methods. For more information see
+[Alembic's official documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html#create-a-migration-script).
+
+## Testing
+
+There is a helper script for both frontend and backend tests:
+
+```
+./scripts/test.sh
+```
+
+### Backend Tests
+
+```
+docker-compose run backend pytest
+```
+
+any arguments to pytest can also be passed after this command
+
+### Frontend Tests
+
+```
+docker-compose run frontend test
+```
+
+This is the same as running npm test from within the frontend directory
+
+## Logging
+
+```
+docker-compose logs
+```
+
+Or for a specific service:
+
+```
+docker-compose logs -f name_of_service # frontend|backend|db
+```
+
+## Project Layout
+
+```
+backend
+└── app
+    ├── alembic
+    │   └── versions # where migrations are located
+    ├── api
+    │   └── api_v1
+    │       └── endpoints
+    ├── core    # config
+    ├── db      # db models
+    ├── tests   # pytest
+    └── main.py # entrypoint to backend
+
+frontend
+└── public
+└── src
+    ├── components
+    │   └── Home.tsx
+    ├── config
+    │   └── index.tsx   # constants
+    ├── __tests__
+    │   └── test_home.tsx
+    ├── index.tsx   # entrypoint
+    └── App.tsx     # handles routing
+```
