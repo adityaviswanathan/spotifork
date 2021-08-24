@@ -16,6 +16,8 @@
 
 The only dependencies for this project should be docker and docker-compose.
 
+**Note** that you will also need an `.env` file (`.gitignore`d) with application secrets (see `.env.example` for a sample of the format) in the root of the repo.
+
 ### Quick Start
 
 When running the project for the first time, you will need to run the initial data migrations:
