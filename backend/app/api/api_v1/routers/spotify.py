@@ -20,10 +20,10 @@ async def login(request: Request):
     return {"url": get_url()}
 
 @r.get("/logout")
+async def logout(request: Request):
     """
     Logout of Spotify client.
     """
-async def logout(request: Request):
     return clear_token()
 
 @r.post("/token")
