@@ -1,5 +1,6 @@
 import React, { FC, useState } from 'react';
 import SpotifyPlayer from "react-spotify-web-playback";
+import { makeStyles } from '@material-ui/core/styles';
 
 interface Props {
 }
@@ -11,7 +12,68 @@ interface Item {
   duration_ms: number
 }
 
+interface MusicAlbumResult {
+  id: string,
+  image_url: string,
+  name: string,
+  uri: string
+}
+
+interface MusicArtistResult {
+  id: string,
+  name: string,
+  uri: string
+}
+
+interface MusicSongResult {
+  duration: number,
+  id: string,
+  name: string,
+  uri: string
+}
+
+interface MusicResult {
+  album: MusicAlbumResult,
+  artists: MusicArtistResult[],
+  song: MusicSongResult
+}
+
+interface MusicResults {
+  items: MusicResult[],
+  paged_url: string
+}
+
+interface PodcastEpisodeResult {
+  duration: number,
+  id: string,
+  image_url: string,
+  name: string,
+  uri: string
+}
+
+interface PodcastResult {
+  episode: PodcastEpisodeResult
+}
+
+interface PodcastResults {
+  items: PodcastResult[],
+  paged_url: string
+}
+
+interface Results {
+  music: MusicResults,
+  podcasts: PodcastResults,
+}
+
+const useStyles = makeStyles((theme) => ({
+  link: {
+    color: '#61dafb',
+    cursor: 'pointer'
+  },
+}));
+
 export const Player: FC = () => {
+  const classes = useStyles();
   const [isPlaying, setIsPlaying] = useState<string>('Paused');
   const [progressMs, setProgressMs] = useState<number>(0);
   const [item, setItem] = useState<Item>({
@@ -24,6 +86,17 @@ export const Player: FC = () => {
   });
   const [noData, setNoData] = useState<boolean>(true);
   const [token, setToken] = useState<string | undefined>(undefined);
+  const [results, setResults] = useState<Results>({
+    music: {
+      items: [],
+      paged_url: ""
+    },
+    podcasts: {
+      items: [],
+      paged_url: ""
+    }
+  });
+  const [track, setTrack] = useState<string>("spotify:artist:6HQYnRM4OzToCYPpVBInuU");
 
   const getCurrentlyPlaying = (token: string) => {
     // Make a call using the token
@@ -86,6 +159,25 @@ export const Player: FC = () => {
     setToken(undefined);
   };
 
+  const searchSpotify = async(query: string) => {
+    const request = new Request('/api/spotify/search', {
+      body: JSON.stringify({query: query}),
+      headers: {'Content-Type': 'application/json'},
+      method: 'POST'
+    });
+    return fetch(request)
+      .then((response) => {
+        if (response.status < 200 || response.status >= 300) {
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setResults(data);
+      });
+  }
+
   const getSpotifyToken = async () => {
     const request = new Request('/api/spotify/token', {
       method: 'POST'
@@ -100,13 +192,13 @@ export const Player: FC = () => {
     }
   };
 
-  const tick = () => {
-    if(token) {
-      getCurrentlyPlaying(token);
-    }
-  }
+  // const tick = () => {
+  //   if(token) {
+  //     getCurrentlyPlaying(token);
+  //   }
+  // }
   getSpotifyToken();
-  setInterval(() => tick(), 5000);
+  // setInterval(() => tick(), 5000);
 
   return (
     <div className="App">
@@ -118,9 +210,27 @@ export const Player: FC = () => {
           </button>
         )}
         {token && [
+          <input
+            key="search"
+            onChange={event => searchSpotify(event.target.value)}
+          />,
+          results.music.items.map(i =>
+            <div className={classes.link}
+                 key={`${i.song.id}`}
+                 onClick={_ => setTrack(i.song.uri)}>
+              <span>{i.artists.map(j => j.name).join(", ")} - </span>
+              <span>{i.song.name}</span>
+            </div>
+          ),
+          results.podcasts.items.map(i =>
+            <div className={classes.link}
+                 key={`${i.episode.id}`}>
+              <span>{i.episode.name}</span>
+            </div>
+          ),
           <SpotifyPlayer
             token={token}
-            uris={["spotify:artist:6HQYnRM4OzToCYPpVBInuU"]}
+            uris={[track]}
             key="player"
           />,
           <button className="btn"
@@ -131,11 +241,6 @@ export const Player: FC = () => {
         ]}
         {token && !noData && (
           <p>Currently playing: {item.name}</p>
-        )}
-        {token && noData && (
-          <p>
-            You need to be playing a song on Spotify for something to appear here.
-          </p>
         )}
       </header>
     </div>
