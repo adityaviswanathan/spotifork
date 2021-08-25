@@ -34,8 +34,7 @@ async def logout(request: Request):
     return clear_token()
 
 @r.post("/search",
-        response_model=SpotifySearchResponse,
-        response_model_exclude_none=True)
+        response_model=SpotifySearchResponse)
 async def search(request: Request,
                  payload: SpotifySearchRequest):
     """
@@ -49,3 +48,4 @@ async def token(request: Request):
     Fetch token for Spotify client persisted to cache.
     """
     return get_token()
+

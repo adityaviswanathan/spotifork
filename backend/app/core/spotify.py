@@ -35,6 +35,16 @@ auth_manager = SpotifyOAuth(
     redirect_uri=REDIRECT_URI,
     scope=" ".join(SCOPES))
 
+def _empty_response():
+    return SpotifySearchResponse(
+        music=SpotifyMusicSearchResults(
+            items = []
+        ),
+        podcasts=SpotifyPodcastSearchResults(
+            items = []
+        )
+    )
+
 def _music_item_to_schema(req):
     return SpotifyMusicSearchResult(
         album=SpotifyMusicAlbum(
@@ -58,6 +68,10 @@ def _music_item_to_schema(req):
     )
 
 def _music_to_schema(req):
+    if req is None:
+        return SpotifyMusicSearchResults(
+            items=[]
+        )
     return SpotifyMusicSearchResults(
         items=[_music_item_to_schema(i) for i in req["items"]],
         paged_url=req["href"]
@@ -75,6 +89,10 @@ def _podcast_item_to_schema(req):
     )
 
 def _podcast_to_schema(req):
+    if req is None:
+        return SpotifyPodcastSearchResults(
+            items=[]
+        )
     return SpotifyPodcastSearchResults(
         items=[_podcast_item_to_schema(i) for i in req["items"]],
         paged_url=req["href"]
@@ -82,8 +100,8 @@ def _podcast_to_schema(req):
 
 def _response_to_schema(req):
     return SpotifySearchResponse(
-        music=_music_to_schema(req["tracks"]),
-        podcasts=_podcast_to_schema(req["episodes"])
+        music=_music_to_schema(req.get("tracks")),
+        podcasts=_podcast_to_schema(req.get("episodes"))
     )
 
 def clear_token():
@@ -107,6 +125,8 @@ def get_token():
     }
 
 def search_library(payload):
+    if len(payload.query) == 0:
+        return _empty_response()
     s = spotipy.Spotify(auth_manager.get_cached_token()["access_token"])
     res = s.search(payload.query, type=",".join(payload.content_type))
     return _response_to_schema(res)

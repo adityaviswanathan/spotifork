@@ -73,7 +73,7 @@ class SpotifyPodcastSearchResult(BaseModel):
 
 class SpotifyPodcastSearchResults(BaseModel):
     items: t.List[SpotifyPodcastSearchResult]
-    paged_url: str
+    paged_url: t.Optional[str] = None
 
 class SpotifyMusicSearchResult(BaseModel):
     album: SpotifyMusicAlbum
@@ -82,11 +82,11 @@ class SpotifyMusicSearchResult(BaseModel):
 
 class SpotifyMusicSearchResults(BaseModel):
     items: t.List[SpotifyMusicSearchResult]
-    paged_url: str
+    paged_url: t.Optional[str] = None
 
 class SpotifySearchRequest(BaseModel):
     query: str = None
-    content_type: str = ["episode", "track"]
+    content_type: str = ["track"]
 
 class SpotifySearchResponse(BaseModel):
     music: SpotifyMusicSearchResults
