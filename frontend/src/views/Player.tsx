@@ -100,13 +100,13 @@ export const Player: FC = () => {
     }
   };
 
-  const tick = () => {
-    if(token) {
-      getCurrentlyPlaying(token);
-    }
-  }
+  // const tick = () => {
+  //   if(token) {
+  //     getCurrentlyPlaying(token);
+  //   }
+  // }
   getSpotifyToken();
-  setInterval(() => tick(), 5000);
+  // setInterval(() => tick(), 5000);
 
   return (
     <div className="App">

@@ -1,7 +1,14 @@
 import requests
 import typing as t
 
-from app.core.spotify import get_token, get_url, clear_token, set_token
+from app.core.spotify import (
+    clear_token,
+    get_token,
+    get_url,
+    search_library,
+    set_token
+)
+from app.db.schemas import SpotifySearchRequest, SpotifySearchResponse
 from fastapi import APIRouter, Request, Depends, Response, encoders
 from fastapi.responses import HTMLResponse
 from starlette.responses import RedirectResponse
@@ -25,6 +32,16 @@ async def logout(request: Request):
     Logout of Spotify client.
     """
     return clear_token()
+
+@r.post("/search",
+        response_model=SpotifySearchResponse,
+        response_model_exclude_none=True)
+async def search(request: Request,
+                 payload: SpotifySearchRequest):
+    """
+    Search Spotify library.
+    """
+    return search_library(payload)
 
 @r.post("/token")
 async def token(request: Request):
